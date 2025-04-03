@@ -1,33 +1,34 @@
 import re
 import numpy as np
 import time
+import math
 
 # -----------------------------------------------------------------------------------------
 # Transformation Settings
 # -----------------------------------------------------------------------------------------
-FILE_NAME = 'Shape-Cyl.gcode'      # filename including extension
+FILE_NAME = 'cube.gcode'                             # filename including extension
 FOLDER_NAME = 'gcodes/'                              # name of the subfolder in which the gcode is located
-CONE_ANGLE = 32                                      # transformation angle
+CONE_ANGLE = 16                                      # transformation angle
 CONE_TYPE = 'outward'                                # type of the cone: 'inward' & 'outward'
-FIRST_LAYER_HEIGHT = 0.2                            # moves all the gcode up to this height. Use also for stacking
-PLATE_X = 110                                       # moves your gcode away from the origin into the center of the bed (usually bed size / 2)
+FIRST_LAYER_HEIGHT = 0.2                             # moves all the gcode up to this height. Use also for stacking
+PLATE_X = 110                                        # moves your gcode away from the origin into the center of the bed (usually bed size / 2)
 PLATE_Y = 110
 X_MOVE = 0
-Y_MOVE = 0
-theta = np.radians(CONE_ANGLE)
+Y_MOVE = -30
 
-def move(x,y):
-    x,y = x-220,y-220
+def move(x,y,c):
+    x,y = x+(c * PLATE_X),y+(c* PLATE_Y)
     return x,y
 
-def replace_z(x,y,z_val,e_val):
+def replace_z(x,y,z,e_val,):
     if CONE_TYPE == 'outward':
         c = -1
     elif CONE_TYPE == 'inward':
         c = 1
-    z_val = z_val + c * (np.tan(theta) * np.sqrt(x**2+y**2))
-    #move(x,y,1)
-    row_new = "G1"+" X"+str(round(x,3))+ " Y"+str(round(y,3))+" Z"+str(round(z_val+FIRST_LAYER_HEIGHT,3))+" E"+str(e_val)+"\n"
+    x,y = move(x,y,-1)
+    z_val = z +c * (math.tan(math.radians(CONE_ANGLE)) * math.sqrt(x**2+y**2))
+    x,y = move(x,y,1)
+    row_new = "G1"+" X"+str(round(x+X_MOVE,3))+ " Y"+str(round(y+Y_MOVE,3))+" Z"+str(round(z_val+FIRST_LAYER_HEIGHT,3))+" E"+str(e_val)+"\n"
     return row_new
 
 
@@ -64,7 +65,7 @@ def backtransform_data(data):
                     y_new = float(y_match.group(0).replace('Y', ''))
                 if e_match is not None:
                     e_new = float(e_match.group(0).replace('E', ''))
-                x_new,y_new = move(x_new,y_new)
+                #x_new,y_new = move(x_new,y_new)
                 new_data.append(replace_z(x_new,y_new,z_layer,e_new))
     return new_data
 
