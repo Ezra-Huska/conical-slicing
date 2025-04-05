@@ -5,11 +5,13 @@ import time
 # -----------------------------------------------------------------------------------------
 # Transformation Settings
 # -----------------------------------------------------------------------------------------
-FILE_NAME = 'cube.gcode'                             # filename including extension
+FILE_NAME = 'cube_trans-2.gcode'                          # filename including extension
 FOLDER_NAME = 'gcodes/'                              # name of the subfolder in which the gcode is located
 CONE_ANGLE = 16                                      # transformation angle
 CONE_TYPE = 'outward'                                # type of the cone: 'inward' & 'outward'
 FIRST_LAYER_HEIGHT = 0.2                             # moves all the gcode up to this height. Use also for stacking
+
+# if using cura subtact like 5, you kight need trial and error to make it work, if it doesnt look right, try again
 PLATE_X,PLATE_Y = 110,110                            # moves your gcode away from the origin into the center of the bed (usually bed size / 2)                                       
 X_MOVE,Y_MOVE = 0,-30                                # moves the modle away from the center of the bed if wanted
 
@@ -43,6 +45,7 @@ def backtransform_data(data):
     pattern_Z = r'Z[-0-9]*[.]?[0-9]*'
     pattern_E = r'E[-0-9]*[.]?[0-9]*'
     pattern_G = r'\AG[1] '
+    pattern_G0 = r'\AG[0] '
 
     # sets important variables
     x_new, y_new = 0, 0
@@ -52,8 +55,9 @@ def backtransform_data(data):
 
         # checks if the row is a G1 command
         g_match = re.search(pattern_G, row)
+        g0_mathch = re.search(pattern_G0, row)
 
-        if g_match is None:
+        if g_match is None and g0_mathch is None:
             new_data.append(row)
         else:
             # finds the matches according to the method astablished before
